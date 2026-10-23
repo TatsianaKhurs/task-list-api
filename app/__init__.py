@@ -3,6 +3,7 @@ from .db import db, migrate
 from .models import task, goal
 import os
 
+
 def create_app(config=None):
     app = Flask(__name__)
 
@@ -10,7 +11,7 @@ def create_app(config=None):
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
 
     if config:
-        # Merge `config` into the app's configuration
+        # Merge config into the app's configuration
         # to override the app's default settings for testing
         app.config.update(config)
 
@@ -18,5 +19,7 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints here
+    from app.routes.task_routes import tasks_bp
+    app.register_blueprint(tasks_bp)
 
     return app

@@ -1,1 +1,35 @@
-from flask import Blueprint
+from flask import Blueprint, request
+from app.models.task import Task
+from app.db import db
+
+
+tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
+
+
+# Wave 1: Create a new task
+@tasks_bp.post("")
+def create_task():
+    request_body = request.get_json()
+
+    if not request_body or "title" not in request_body or "description" not in request_body:
+        return {"details": "Invalid data"}, 400
+
+    new_task = Task.from_dict(request_body)
+
+    db.session.add(new_task)
+    db.session.commit()
+
+    return new_task.to_dict(), 201
+
+# Wave 1: Get all tasks
+@tasks_bp.get("")
+def get_all_tasks():
+    query = db.select(Task).order_by(Task.id)
+    tasks = db.session.scalars(query)
+
+    tasks_response = []
+
+    for task in tasks:
+        tasks_response.append(task.to_dict())
+
+    return tasks_response, 200
