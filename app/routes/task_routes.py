@@ -43,3 +43,27 @@ def get_one_task(task_id):
     task = validate_model(Task, task_id)
 
     return task.to_dict(), 200
+
+# Wave 1: Update a task
+@tasks_bp.put("/<task_id>")
+def update_task(task_id):
+    task = validate_model(Task, task_id)
+
+    request_body = request.get_json()
+
+    task.title = request_body["title"]
+    task.description = request_body["description"]
+
+    db.session.commit()
+
+    return "", 204, {"Content-Type": "application/json"}
+
+# Wave 1: Delete a task
+@tasks_bp.delete("/<task_id>")
+def delete_task(task_id):
+    task = validate_model(Task, task_id)
+
+    db.session.delete(task)
+    db.session.commit()
+
+    return "", 204, {"Content-Type": "application/json"}
