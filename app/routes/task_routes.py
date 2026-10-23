@@ -2,6 +2,8 @@ from flask import Blueprint, request
 from app.models.task import Task
 from app.db import db
 
+from app.route_utilities import validate_model
+
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -24,6 +26,7 @@ def create_task():
 # Wave 1: Get all tasks
 @tasks_bp.get("")
 def get_all_tasks():
+
     query = db.select(Task).order_by(Task.id)
     tasks = db.session.scalars(query)
 
@@ -33,3 +36,10 @@ def get_all_tasks():
         tasks_response.append(task.to_dict())
 
     return tasks_response, 200
+
+# Wave 1: Get one task
+@tasks_bp.get("/<task_id>")
+def get_one_task(task_id):
+    task = validate_model(Task, task_id)
+
+    return task.to_dict(), 200
