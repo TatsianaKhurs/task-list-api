@@ -5,6 +5,8 @@ from datetime import datetime
 
 from app.route_utilities import validate_model
 
+import requests
+import os
 
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
@@ -97,7 +99,19 @@ def mark_complete(task_id):
     task = validate_model(Task, task_id)
 
     task.completed_at = datetime.now()
-
     db.session.commit()
+
+    url = "https://slack.com/api/chat.postMessage"
+
+    headers = {
+        "Authorization": f"Bearer {os.environ.get('SLACK_BOT_TOKEN')}"
+    }
+
+    message = {
+        "channel": os.environ.get("SLACK_CHANNEL_ID"),
+        "text": f"Someone just completed the task {task.title}"
+    }
+
+    requests.post(url, json=message, headers=headers, timeout=10)
 
     return "", 204, {"Content-Type": "application/json"}
