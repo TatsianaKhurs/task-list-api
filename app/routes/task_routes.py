@@ -23,11 +23,22 @@ def create_task():
 
     return new_task.to_dict(), 201
 
-# Wave 1: Get all tasks
+# Wave 1 and Wave 2: Get all tasks with sorting
 @tasks_bp.get("")
 def get_all_tasks():
+    sort = request.args.get("sort")
 
-    query = db.select(Task).order_by(Task.id)
+    query = db.select(Task)
+
+    if sort == "asc":
+        query = query.order_by(Task.title.asc())
+
+    elif sort == "desc":
+        query = query.order_by(Task.title.desc())
+
+    else:
+        query = query.order_by(Task.id)
+
     tasks = db.session.scalars(query)
 
     tasks_response = []
