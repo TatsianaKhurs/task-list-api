@@ -1,5 +1,6 @@
 from flask import Blueprint, request
 from app.models.goal import Goal
+from app.models.task import Task
 from app.db import db
 from app.route_utilities import validate_model
 
@@ -68,3 +69,42 @@ def delete_goal(goal_id):
     db.session.commit()
 
     return "", 204, {"Content-Type": "application/json"}
+
+# Wave 6: Associate tasks with a goal
+@goals_bp.post("/<goal_id>/tasks")
+def add_tasks_to_goal(goal_id):
+    goal = validate_model(Goal, goal_id)
+
+    request_body = request.get_json()
+    task_ids = request_body["task_ids"]
+
+    tasks = []
+
+    for task_id in task_ids:
+        task = validate_model(Task, task_id)
+        tasks.append(task)
+
+    goal.tasks = tasks
+
+    db.session.commit()
+
+    return {
+        "id": goal.id,
+        "task_ids": [task.id for task in tasks]
+    }, 200
+
+# Wave 6: Get all tasks belonging to a goal
+@goals_bp.get("/<goal_id>/tasks")
+def get_tasks_for_goal(goal_id):
+    goal = validate_model(Goal, goal_id)
+
+    tasks_response = []
+
+    for task in goal.tasks:
+        tasks_response.append(task.to_dict())
+
+    return {
+        "id": goal.id,
+        "title": goal.title,
+        "tasks": tasks_response
+    }, 200
