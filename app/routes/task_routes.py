@@ -1,6 +1,7 @@
 from flask import Blueprint, request
 from app.models.task import Task
 from app.db import db
+from datetime import datetime
 
 from app.route_utilities import validate_model
 
@@ -75,6 +76,28 @@ def delete_task(task_id):
     task = validate_model(Task, task_id)
 
     db.session.delete(task)
+    db.session.commit()
+
+    return "", 204, {"Content-Type": "application/json"}
+
+# Wave 3: Mark a task incomplete
+@tasks_bp.patch("/<task_id>/mark_incomplete")
+def mark_incomplete(task_id):
+    task = validate_model(Task, task_id)
+
+    task.completed_at = None
+
+    db.session.commit()
+
+    return "", 204, {"Content-Type": "application/json"}
+
+# Wave 3: Mark a task complete
+@tasks_bp.patch("/<task_id>/mark_complete")
+def mark_complete(task_id):
+    task = validate_model(Task, task_id)
+
+    task.completed_at = datetime.now()
+
     db.session.commit()
 
     return "", 204, {"Content-Type": "application/json"}
