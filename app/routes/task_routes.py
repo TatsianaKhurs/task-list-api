@@ -1,10 +1,9 @@
 from flask import Blueprint, request
 from app.models.task import Task
-from app.models.task import Task
 from app.db import db
 from datetime import datetime
 
-from app.route_utilities import validate_model
+from app.route_utilities import validate_model, create_model
 
 import requests
 import os
@@ -12,20 +11,13 @@ import os
 tasks_bp = Blueprint("tasks_bp", __name__, url_prefix="/tasks")
 
 
-# Wave 1: Create a new task
+# Wave 1 and Wave 7: Create a new task using helper
 @tasks_bp.post("")
 def create_task():
-    request_body = request.get_json()
+    request_body = request.get_json(silent=True)
 
-    if not request_body or "title" not in request_body or "description" not in request_body:
-        return {"details": "Invalid data"}, 400
+    return create_model(Task, request_body)
 
-    new_task = Task.from_dict(request_body)
-
-    db.session.add(new_task)
-    db.session.commit()
-
-    return new_task.to_dict(), 201
 
 # Wave 1 and Wave 2: Get all tasks with sorting
 @tasks_bp.get("")
@@ -52,12 +44,14 @@ def get_all_tasks():
 
     return tasks_response, 200
 
+
 # Wave 1: Get one task
 @tasks_bp.get("/<task_id>")
 def get_one_task(task_id):
     task = validate_model(Task, task_id)
 
     return task.to_dict(), 200
+
 
 # Wave 1: Update a task
 @tasks_bp.put("/<task_id>")
@@ -73,6 +67,7 @@ def update_task(task_id):
 
     return "", 204, {"Content-Type": "application/json"}
 
+
 # Wave 1: Delete a task
 @tasks_bp.delete("/<task_id>")
 def delete_task(task_id):
@@ -82,6 +77,7 @@ def delete_task(task_id):
     db.session.commit()
 
     return "", 204, {"Content-Type": "application/json"}
+
 
 # Wave 3: Mark a task incomplete
 @tasks_bp.patch("/<task_id>/mark_incomplete")
@@ -94,7 +90,8 @@ def mark_incomplete(task_id):
 
     return "", 204, {"Content-Type": "application/json"}
 
-# Wave 3: Mark a task complete
+
+# Wave 3 and Wave 4: Mark a task complete and notify Slack
 @tasks_bp.patch("/<task_id>/mark_complete")
 def mark_complete(task_id):
     task = validate_model(Task, task_id)
